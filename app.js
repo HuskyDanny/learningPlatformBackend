@@ -8,7 +8,7 @@ require("./config/passport");
 require("dotenv").config();
 
 const DBPORT = process.env.DBPORT || 27017;
-const APIPORT = process.env.APIPORT || 3000;
+const APIPORT = process.env.PORT || 3000;
 
 mongoose.set("useFindAndModify", false);
 mongoose.set("useCreateIndex", true);
@@ -54,6 +54,6 @@ if (!fs.existsSync(filesDir)) {
 }
 
 //Listening port
-app.listen(APIPORT, () => {
-  console.log(`Listening on ${APIPORT}`);
+app.listen(PORT, () => {
+  console.log(`Listening on ${PORT}`);
 });
