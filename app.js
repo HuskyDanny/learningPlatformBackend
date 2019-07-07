@@ -8,7 +8,7 @@ require("./config/passport");
 require("dotenv").config();
 
 const DBPORT = process.env.DBPORT || 27017;
-const APIPORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
 mongoose.set("useFindAndModify", false);
 mongoose.set("useCreateIndex", true);
