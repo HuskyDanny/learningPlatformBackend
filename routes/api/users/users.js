@@ -66,7 +66,6 @@ router.post("/signup", auth.optional, async (req, res) => {
   } = req;
 
   //validate content
-  console.log("Before Validate");
   const { error } = userValidator(user);
 
   if (error) return res.status(400).json(error.message);
@@ -77,7 +76,7 @@ router.post("/signup", auth.optional, async (req, res) => {
 
   //save to mongodb
   try {
-    console.log("Before Save");
+    console.log(newUser);
     newUser = await newUser.save();
     console.log("After Save");
     res.status(201).json({ message: "Created Account" });
