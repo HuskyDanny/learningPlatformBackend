@@ -101,6 +101,7 @@ router.post("/signup", auth.optional, async (req, res) => {
     await sgMail.send(msg);
   } catch (error) {
     //duplicate error return to user
+    console.log(error);
     if (error.code === 11000) {
       let message = { email: "", username: "" };
       if (error.errmsg.includes("email")) {
