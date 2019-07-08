@@ -66,6 +66,7 @@ router.post("/signup", auth.optional, async (req, res) => {
   } = req;
 
   //validate content
+  console.log("Before Validate");
   const { error } = userValidator(user);
 
   if (error) return res.status(400).json(error.message);
@@ -76,10 +77,14 @@ router.post("/signup", auth.optional, async (req, res) => {
 
   //save to mongodb
   try {
+    console.log("Before Save");
     newUser = await newUser.save();
+    console.log("After Save");
     res.status(201).json({ message: "Created Account" });
 
-    const url = `http://localhost:3000/api/users/comfirmation/${newUser.generateJWT()}`;
+    const url = `${
+      process.env.BACKEND_SERVER
+    }/api/users/comfirmation/${newUser.generateJWT()}`;
 
     //Use smtp service for email verification
     const msg = {
@@ -176,7 +181,7 @@ router.delete("/myPosts/:id", auth.required, async (req, res) => {
 });
 
 router.post("/login", (req, res) => {
-  return passport.authenticate("local", { session: false }, function (
+  return passport.authenticate("local", { session: false }, function(
     err,
     user,
     info
