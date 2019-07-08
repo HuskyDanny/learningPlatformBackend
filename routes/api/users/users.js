@@ -8,10 +8,11 @@ const router = Router();
 
 router.get("/comfirmation/:token", auth.optional, async (req, res) => {
   const secret = process.env.JWT_SECRET;
+  const redirectUrl = process.env.REDIRECTURL || "http://localhost:3000/index";
   try {
     const { _id } = jwt.verify(req.params.token, secret);
     await User.findOneAndUpdate({ _id: _id }, { confirmed: true });
-    res.redirect("http://localhost:3001/index");
+    res.redirect(redirectUrl);
   } catch (error) {
     res.json(error.message);
   }
