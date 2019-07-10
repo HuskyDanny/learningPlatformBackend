@@ -1,6 +1,7 @@
 const { Router } = require("express");
 var FroalaEditor = require("wysiwyg-editor-node-sdk");
 const auth = require("../../auth");
+const s3 = require("../../../config/aws");
 
 router = Router();
 

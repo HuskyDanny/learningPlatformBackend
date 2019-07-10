@@ -13,6 +13,7 @@
   "dependencies": {
     "@sendgrid/mail": "^6.4.0",
     "algoliasearch": "^3.33.0",
+    "aws-sdk": "^2.490.0",
     "axios": "^0.18.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
