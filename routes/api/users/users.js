@@ -83,7 +83,7 @@ router.post("/signup", auth.optional, async (req, res) => {
     res.status(201).json({ message: "Created Account" });
 
     const url = `${
-      process.env.FRONTEND_SERVER
+      process.env.BACKEND_SERVER
     }/api/users/comfirmation/${newUser.generateJWT()}`;
 
     //Use smtp service for email verification
