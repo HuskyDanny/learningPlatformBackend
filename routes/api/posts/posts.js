@@ -87,7 +87,7 @@ router.patch("/likes/:id", auth.required, (req, res) => {
     .getObject(req.params.id, ["likes"])
     .then(content =>
       index.partialUpdateObject({
-        likes: content.likes + 1,
+        likes: content.likes + increment,
         objectID: req.params.id
       })
     )
