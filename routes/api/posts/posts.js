@@ -69,41 +69,38 @@ router.delete("/:id", (req, res) => {
     .catch(err => res.status(500).json(err.message));
 });
 
-router.patch("/likes/:id", auth.required, (req, res) => {
-  let increment;
-  if (req.body.liked) {
-    increment = -1;
-  } else {
-    increment = 1;
-  }
+router.patch("/likes/:id", auth.required, async (req, res) => {
+  const increment = req.body.liked ? -1 : 1;
 
-  const promiseMongo = Post.findOneAndUpdate(
-    { _id: req.params.id },
-    { $inc: { likes: increment } },
-    { new: true }
-  );
+  try {
+    const content = await index.getObject(req.params.id, ["likes"]);
 
-  const promiseAlgolia = index
-    .getObject(req.params.id, ["likes"])
-    .then(content =>
-      index.partialUpdateObject({
+    //Because the aync feature of algolia
+    //We have to waittask for its update to keep consistency
+    await index.partialUpdateObject(
+      {
         likes: content.likes + increment,
         objectID: req.params.id
-      })
-    )
-    .catch(err => res.status(500).json(err.message));
-
-  //only fetching the first object returned by algolia
-  Promise.all([promiseAlgolia, promiseMongo])
-    .then(content => res.json(content[0]))
-    .catch(err => res.status(500).json(err.message));
+      },
+      (err, { taskID } = {}) => {
+        index.waitTask(taskID, err => {
+          if (!err) {
+            return res.json({ message: "updated" });
+          }
+        });
+      }
+    );
+  } catch (error) {
+    return res.json({ message: error.message });
+  }
 });
 
 router.patch("/comments/:id", auth.required, async (req, res) => {
-  const { error } = await commentValidator(req.body.comment);
-  if (error) return res.status(400).send(error.message);
-
   try {
+    const { error } = await commentValidator(req.body.comment);
+
+    if (error) return res.status(400).send(error.message);
+
     const comment = new Comment(req.body.comment);
 
     const post = await Post.findOneAndUpdate(
@@ -120,7 +117,7 @@ router.patch("/comments/:id", auth.required, async (req, res) => {
 
     return res.json(comment);
   } catch (error) {
-    return res.json(error);
+    return res.status(403).send(error.message);
   }
 });
 
@@ -147,17 +144,15 @@ router.patch("/comments/reply/:id", auth.required, async (req, res) => {
   try {
     let post = await Post.findOne({ _id: req.params.id });
 
-    console.log(req.query.commentId);
     let result = await post.comments.id(req.query.commentId);
 
     let newReply = new Reply(req.body.reply);
     result.replies.push(newReply);
 
     post = await post.save();
-    console.log(newReply);
+
     res.json(newReply);
   } catch (error) {
-    console.log(error);
     res.json(error.message);
   }
 });

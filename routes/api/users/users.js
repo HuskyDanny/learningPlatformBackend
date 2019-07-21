@@ -5,6 +5,40 @@ const auth = require("../../auth");
 const sgMail = require("../../../config/sgMail");
 const jwt = require("jsonwebtoken");
 const router = Router();
+const s3 = require("../../../config/aws");
+const multer = require("multer");
+const multerS3 = require("multer-s3");
+
+var upload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: "profileimagelearningplatform",
+    metadata: function(req, file, cb) {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: function(req, file, cb) {
+      cb(null, new Date().toISOString() + "_" + file.originalname); //use Date.now() for unique file keys
+    }
+  })
+});
+
+router.post(
+  "/profile/:id",
+  auth.required,
+  upload.single("avatar"),
+  async (req, res) => {
+    try {
+      const user = await User.findOneAndUpdate(
+        { _id: req.params.id },
+        { avatar: req.file.location },
+        { new: true }
+      );
+      res.json(user.toAuthJSON());
+    } catch (error) {
+      res.status(500).json({ message: "failed upload" });
+    }
+  }
+);
 
 router.get("/comfirmation/:token", auth.optional, async (req, res) => {
   const secret = process.env.JWT_SECRET;
@@ -120,7 +154,7 @@ router.post("/likes/:id", auth.required, async (req, res) => {
   try {
     const result = await User.findByIdAndUpdate(
       { _id: req.params.id },
-      { $push: { likedPosts: req.body.postID } },
+      { $addToSet: { likedPosts: req.body.postID } },
       { new: true }
     );
 

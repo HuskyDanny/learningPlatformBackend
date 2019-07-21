@@ -39,6 +39,7 @@ const UsersSchema = new mongoose.Schema({
       }
     }
   },
+  avatar: { type: String },
   likedPosts: { type: [String] },
   savedPosts: { type: [String] },
   myPosts: { type: [String] },
@@ -86,7 +87,8 @@ UsersSchema.methods.userView = function() {
   return {
     email: this.email,
     username: this.username,
-    likeTags: this.likeTags
+    likeTags: this.likeTags,
+    avatar: this.avatar
   };
 };
 
@@ -97,7 +99,8 @@ UsersSchema.methods.toAuthJSON = function() {
     token: this.generateJWT(),
     id: this._id,
     likedPosts: this.likedPosts,
-    myPosts: this.myPosts
+    myPosts: this.myPosts,
+    avatar: this.avatar
   };
 };
 

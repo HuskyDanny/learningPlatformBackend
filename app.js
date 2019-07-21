@@ -4,17 +4,17 @@ const cors = require("cors");
 const session = require("express-session");
 const path = require("path");
 const fs = require("fs");
-
 require("./config/passport");
 require("dotenv").config();
 
-const DBPORT = process.env.DBPORT || 27017;
-const PORT = process.env.PORT || 3000;
 
+const PORT = process.env.APIPORT || 3000;
+const MONGODBURI =
+  process.env.MONGODB_URI || "mongodb://localhost:27017/project";
 mongoose.set("useFindAndModify", false);
 mongoose.set("useCreateIndex", true);
 mongoose
-  .connect(process.env.MONGODB_URI, {
+  .connect(MONGODBURI, {
     useNewUrlParser: true
   })
   .then(() => console.log("connected"))

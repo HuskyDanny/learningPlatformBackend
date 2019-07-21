@@ -1,11 +1,12 @@
-const AWS = require("aws-sdk");
+const aws = require("aws-sdk");
 
 //configuring the AWS environment
-AWS.config.update({
+aws.config.update({
   accessKeyId: process.env.AWSAccessKeyId,
   secretAccessKey: process.env.AWSAccessKey
 });
+aws.config.region = "ap-east-1";
 
-var s3 = new AWS.S3();
+const s3 = new aws.S3();
 
-module.exports.s3 = s3;
+module.exports = s3;

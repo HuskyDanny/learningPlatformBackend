@@ -35,6 +35,7 @@ const commentValidator = comment => {
     username: Joi.string().required(),
     userID: Joi.string().required()
   };
+
   return Joi.validate(comment, joiCommentSchema);
 };
 
@@ -42,7 +43,9 @@ const replyValidator = reply => {
   const joiReplySchema = {
     body: Joi.string().required(),
     date: Joi.string(),
-    username: Joi.string().required(),
+    username: Joi.string()
+      .required()
+      .error(new Error("empty username")),
     userID: Joi.string().required()
   };
   return Joi.validate(reply, joiReplySchema);
