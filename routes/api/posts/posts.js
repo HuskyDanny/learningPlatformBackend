@@ -114,12 +114,14 @@ router.patch("/likes/:id", auth.required, async (req, res) => {
       { $inc: { likes: increment } },
       { new: true }
     );
+    console.log(content);
     //Because the aync feature of algolia
     //We have to waittask for its update to keep consistency
-    await index.partialUpdateObject({
+    const res = await index.partialUpdateObject({
       likes: content.likes,
       objectID: req.params.id
     });
+    console.log(res);
 
     res.json({ message: "success" });
   } catch (error) {
