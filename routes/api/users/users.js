@@ -250,11 +250,12 @@ router.post("/likes/:id", auth.required, async (req, res) => {
       { $addToSet: { likedPosts: req.body.postID } },
       { new: true }
     );
-
+    console.log(result);
     if (!result)
       return res.status(400).json({ message: "Please register or sign in" });
     res.json(result);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "error occurred" });
   }
 });

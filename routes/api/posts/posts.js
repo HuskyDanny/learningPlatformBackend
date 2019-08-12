@@ -120,6 +120,8 @@ router.patch("/likes/:id", auth.required, async (req, res) => {
       likes: content.likes,
       objectID: req.params.id
     });
+
+    res.json({ message: "success" });
   } catch (error) {
     console.log(error);
     return res.json({ message: error.message });
