@@ -183,41 +183,17 @@ router.post("/signup", auth.optional, async (req, res) => {
 
 // Send confirmation email to user
 router.post("/reset-send-email", auth.optional, async (req, res) => {
-  let result;
   const email = req.body.email;
-
   const confirmation = randomize("0A", 6);
-  const otc = {
-    email: email,
-    confirmation: confirmation
-  };
 
   try {
     const user = await User.findOne({ email: email });
-    if (!user) return res.status(404).json({ message: "User not exist" });;
+    if (!user) return res.status(404).json({ message: "User not exist" });
 
-    let query = OTC.findOne({ email: email });
-    let foundOTC = await query.exec();
-      //Create new OTC for each new user
-    if (!foundOTC) {
-      let newOTC = new OTC(otc);
-      const { errorOTC } = OTCValidator(newOTC);
-      console.log(newOTC);
-      if (errorOTC) return res.status(400).json(errorOTC.message);
-      newOTC = await newOTC.save();
-    } else {
-      MongoClient.connect(url, function(err, db) {
-        if (err) throw err;
-        var dbo = db.db("project");
-        var myquery = { email: email };
-        var newvalues = { $set: { confirmation: confirmation } };
-        dbo.collection("otcs").updateOne(myquery, newvalues, function(err, res) {
-          if (err) throw err;
-          console.log("1 document updated");
-          db.close();
-        });
-      });
-    }
+    await OTC.findOneAndUpdate(
+      { email: email },
+      { confirmation: confirmation }
+    );
 
     const msg = {
       to: email,
@@ -229,11 +205,11 @@ router.post("/reset-send-email", auth.optional, async (req, res) => {
       }
     };
     sgMail.send(msg);
-    result = res.send(JSON.stringify({ success: true }));
+
+    res.json({ success: true });
   } catch (error) {
-    console.log("This is a check" + error);
+    res.status(500).json({ message: "otc not successful" });
   }
-  return result;
 });
 
 router.post("/reset-password", auth.optional, async (req, res) => {
@@ -243,35 +219,33 @@ router.post("/reset-password", auth.optional, async (req, res) => {
   const confirmation = req.body.confirmation;
 
   try {
-    const user = await User.findOne({ email: email });
-    if (!user) return res.status(404).json({ message: "User not exist" });
-    const otc = await OTC.findOne({ email: email });
     if (passwordAgain !== password) {
       return res.status(491).json({ message: "Password not matching" });
-    } else if (!otc.validateCmf(confirmation)) {
-      return res.status(401).json({ message: "The confirmation code is not valid" });
-    } else if (user.validatePassword(password)) {
+    }
+    const otc = await OTC.findOne({ email: email });
+    if (!otc.validateCmf(confirmation)) {
+      return res
+        .status(401)
+        .json({ message: "The confirmation code is not valid" });
+    }
+    const user = await User.findOne({ email: email });
+    if (!user) return res.status(404).json({ message: "User not exist" });
+
+    if (user.validatePassword(password)) {
       return res.status(403).json({
         message: "Password Exist"
       });
-    } else {
-      const newUser = new User(user);
-      newUser.setPassword(password);
-      newUser.save();
-      console.log("Reset Successfully");
     }
+    const newUser = new User(user);
+    newUser.setPassword(password);
+    newUser.save();
+    console.log("Reset Successfully");
+
     confirmation = randomize("0A", 6);
-    MongoClient.connect(url, function(err, db) {
-      if (err) throw err;
-      var dbo = db.db("project");
-      var myquery = { email: email };
-      var newvalues = { $set: { confirmation: confirmation } };
-      dbo.collection("otcs").updateOne(myquery, newvalues, function(err, res) {
-        if (err) throw err;
-        console.log("1 document updated");
-        db.close();
-      });
-    });
+    await OTC.findOneAndUpdate(
+      { email: email },
+      { confirmation: confirmation }
+    );
     return res.json({ message: "Success" });
   } catch (error) {
     return res.json(error);
