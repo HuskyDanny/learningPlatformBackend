@@ -237,9 +237,11 @@ router.post("/reset-password", auth.optional, async (req, res) => {
       });
     }
 
+    console.log(user);
     user.setPassword(password);
-    user.save();
+    const newUser = await user.save();
 
+    console.log(newUser);
     //update otc to prevent abuse
     // confirmation = randomize("0A", 6);
     // await OTC.findOneAndUpdate(
