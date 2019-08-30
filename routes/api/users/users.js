@@ -250,6 +250,7 @@ router.post("/reset-password", auth.optional, async (req, res) => {
     // );
     return res.json({ message: "Success" });
   } catch (error) {
+    console.log(error);
     return res.json(error);
   }
 });
