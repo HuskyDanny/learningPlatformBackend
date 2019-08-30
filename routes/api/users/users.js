@@ -236,16 +236,16 @@ router.post("/reset-password", auth.optional, async (req, res) => {
         message: "Password Exist"
       });
     }
-    const newUser = new User(user);
-    newUser.setPassword(password);
-    newUser.save();
-    console.log("Reset Successfully");
 
-    confirmation = randomize("0A", 6);
-    await OTC.findOneAndUpdate(
-      { email: email },
-      { confirmation: confirmation }
-    );
+    user.setPassword(password);
+    user.save();
+
+    //update otc to prevent abuse
+    // confirmation = randomize("0A", 6);
+    // await OTC.findOneAndUpdate(
+    //   { email: email },
+    //   { confirmation: confirmation }
+    // );
     return res.json({ message: "Success" });
   } catch (error) {
     return res.json(error);
