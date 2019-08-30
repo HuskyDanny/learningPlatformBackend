@@ -26,6 +26,35 @@ var upload = multer({
   })
 });
 
+router.patch("/draft/:id", auth.required, (req, res) => {
+  if (req.body.content) {
+    User.findOneAndUpdate({ _id: req.params.id }, { draft: req.body.content })
+      .then(() => res.send({ message: "saved" }))
+      .catch(err => {
+        console.log(err);
+        res.status(500).json({ message: "failed" });
+      });
+  }
+});
+
+router.get("/draft/:id", auth.required, (req, res) => {
+  User.findOne({ _id: req.params.id })
+    .then(user => res.json({ content: user.draft }))
+    .catch(err => res.status(500).json({ message: "failed" }));
+});
+
+router.patch("/bio/:id", auth.required, async (req, res) => {
+  try {
+    const user = await User.findOneAndUpdate(
+      { _id: req.params.id },
+      { bio: req.body.bio }
+    );
+    res.json(user.toAuthJSON());
+  } catch (error) {
+    res.status(500).json({ message: "bio not updated" });
+  }
+});
+
 router.patch(
   "/profile/:id",
   auth.required,
@@ -162,30 +191,34 @@ router.post("/reset-send-email", auth.optional, async (req, res) => {
     email: email,
     confirmation: confirmation
   };
-  //Create new OTC for each new user
-  let query = OTC.findOne({ email: email });
-  let foundUser = await query.exec();
-  if (!foundUser) {
-    let newOTC = new OTC(otc);
-    const { errorOTC } = OTCValidator(newOTC);
-    console.log(newOTC);
-    if (errorOTC) return res.status(400).json(error.message);
-    newOTC = await newOTC.save();
-  } else {
-    MongoClient.connect(url, function(err, db) {
-      if (err) throw err;
-      var dbo = db.db("project");
-      var myquery = { email: email };
-      var newvalues = { $set: { confirmation: confirmation } };
-      dbo.collection("otcs").updateOne(myquery, newvalues, function(err, res) {
-        if (err) throw err;
-        console.log("1 document updated");
-        db.close();
-      });
-    });
-  }
 
   try {
+    const user = await User.findOne({ email: email });
+    if (!user) return res.status(404).json({ message: "User not exist" });;
+
+    let query = OTC.findOne({ email: email });
+    let foundOTC = await query.exec();
+      //Create new OTC for each new user
+    if (!foundOTC) {
+      let newOTC = new OTC(otc);
+      const { errorOTC } = OTCValidator(newOTC);
+      console.log(newOTC);
+      if (errorOTC) return res.status(400).json(errorOTC.message);
+      newOTC = await newOTC.save();
+    } else {
+      MongoClient.connect(url, function(err, db) {
+        if (err) throw err;
+        var dbo = db.db("project");
+        var myquery = { email: email };
+        var newvalues = { $set: { confirmation: confirmation } };
+        dbo.collection("otcs").updateOne(myquery, newvalues, function(err, res) {
+          if (err) throw err;
+          console.log("1 document updated");
+          db.close();
+        });
+      });
+    }
+
     const msg = {
       to: email,
       from: "welcome@techleak.com",
@@ -206,16 +239,19 @@ router.post("/reset-send-email", auth.optional, async (req, res) => {
 router.post("/reset-password", auth.optional, async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+  const passwordAgain = req.body.passwordAgain;
   const confirmation = req.body.confirmation;
 
   try {
     const user = await User.findOne({ email: email });
-    if (!user) return res.status(400);
+    if (!user) return res.status(404).json({ message: "User not exist" });
     const otc = await OTC.findOne({ email: email });
-    if (!otc.validateCmf(confirmation)) {
-      return res.status(403);
+    if (passwordAgain !== password) {
+      return res.status(491).json({ message: "Password not matching" });
+    } else if (!otc.validateCmf(confirmation)) {
+      return res.status(401).json({ message: "The confirmation code is not valid" });
     } else if (user.validatePassword(password)) {
-      return done(null, false, {
+      return res.status(403).json({
         message: "Password Exist"
       });
     } else {
@@ -250,12 +286,11 @@ router.post("/likes/:id", auth.required, async (req, res) => {
       { $addToSet: { likedPosts: req.body.postID } },
       { new: true }
     );
-    console.log(result);
+
     if (!result)
       return res.status(400).json({ message: "Please register or sign in" });
     res.json(result);
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "error occurred" });
   }
 });

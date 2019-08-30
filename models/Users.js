@@ -56,7 +56,9 @@ const UsersSchema = new mongoose.Schema({
     required: true
   },
   confirmation: String,
-  passwordReset: { type: String, select: false }
+  passwordReset: { type: String, select: false },
+  draft: String,
+  bio: { type: String, default: "Your Biography" }
 });
 
 UsersSchema.methods.setPassword = function(password) {
@@ -80,8 +82,8 @@ UsersSchema.methods.generateJWT = function() {
       username: this.email,
       password: this.password
     },
-    "nowaytocheatonthisdouchybag",
-    { expiresIn: "1h" }
+    process.env.JWT_SECRET,
+    { expiresIn: "2h" }
   );
 };
 
@@ -102,7 +104,8 @@ UsersSchema.methods.toAuthJSON = function() {
     id: this._id,
     likedPosts: this.likedPosts,
     myPosts: this.myPosts,
-    avatar: this.avatar
+    avatar: this.avatar,
+    bio: this.bio
   };
 };
 
