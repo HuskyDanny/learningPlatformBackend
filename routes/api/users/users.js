@@ -192,7 +192,8 @@ router.post("/reset-send-email", auth.optional, async (req, res) => {
 
     await OTC.findOneAndUpdate(
       { email: email },
-      { confirmation: confirmation }
+      { confirmation: confirmation },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
     const msg = {
@@ -251,7 +252,7 @@ router.post("/reset-password", auth.optional, async (req, res) => {
     return res.json({ message: "Success" });
   } catch (error) {
     console.log(error);
-    return res.json(error);
+    return res.status(500).json(error);
   }
 });
 
