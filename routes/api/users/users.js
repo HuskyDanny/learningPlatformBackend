@@ -218,7 +218,7 @@ router.post("/reset-password", auth.optional, async (req, res) => {
   const password = req.body.password;
   const passwordAgain = req.body.passwordAgain;
   const confirmation = req.body.confirmation;
-  console.log("in");
+
   try {
     if (passwordAgain !== password) {
       return res.status(491).json({ message: "Password not matching" });
@@ -238,17 +238,9 @@ router.post("/reset-password", auth.optional, async (req, res) => {
       });
     }
 
-    console.log(user);
     user.setPassword(password);
-    const newUser = await user.save();
-    console.log("after");
-    console.log(newUser);
-    //update otc to prevent abuse
-    // confirmation = randomize("0A", 6);
-    // await OTC.findOneAndUpdate(
-    //   { email: email },
-    //   { confirmation: confirmation }
-    // );
+    user.save();
+
     return res.json({ message: "Success" });
   } catch (error) {
     console.log(error);

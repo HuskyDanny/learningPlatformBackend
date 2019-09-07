@@ -20,7 +20,9 @@ const commentSchema = new mongoose.Schema({
   replies: [replySchema],
   username: { type: String, required: true },
   userId: { type: String, required: true },
-  avatar: { type: String }
+  avatar: { type: String },
+  reputation: { type: Number, required: true, default: 0 },
+  knowledge: { type: Number, required: true, default: 0 }
 });
 
 const Comment = mongoose.model("Comment", commentSchema);
@@ -33,7 +35,9 @@ const commentValidator = comment => {
     username: Joi.string().required(),
     userId: Joi.string().required(),
     post_date_timestamp: Joi.number().required(),
-    avatar: Joi.string()
+    avatar: Joi.string(),
+    reputation: Joi.number(),
+    knowledge: Joi.number()
   };
 
   return Joi.validate(comment, joiCommentSchema);
