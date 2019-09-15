@@ -1,4 +1,5 @@
 const { postValidator, Post } = require("../../../models/Posts");
+const { User } = require("../../../models/Users");
 const { Router } = require("express");
 const auth = require("../../auth");
 const { index, algoliaSchema } = require("../../../config/algolia");
@@ -61,6 +62,12 @@ router.post("/", auth.required, async (req, res, next) => {
   try {
     const result = await postValidator(req.body);
     if (result.error) return res.status(400).send(error.message);
+
+    //check the user verified or not
+    const user = await User.findById({ _id: result.userId });
+    if (!user) return res.status(400).send({ message: "user not found" });
+    if (!user.confirmed)
+      return res.status(422).send({ message: "user not verified" });
 
     //save to db
     const dbSchema = {
