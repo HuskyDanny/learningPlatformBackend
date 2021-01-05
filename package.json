@@ -14,7 +14,7 @@
     "@sendgrid/mail": "^6.4.0",
     "algoliasearch": "^3.33.0",
     "aws-sdk": "^2.493.0",
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^8.0.0",
